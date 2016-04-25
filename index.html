@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Random Forests and aggregation methods by RobRomijnders</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Random Forests and aggregation methods</h1>
+        <p>This projects aggregates a Bagging, Random Forest and MLP classifier for data competition</p>
+
+        <p class="view"><a href="https://github.com/RobRomijnders/trees_ensemble">View the Project on GitHub <small>RobRomijnders/trees_ensemble</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/RobRomijnders/trees_ensemble/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/RobRomijnders/trees_ensemble/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/RobRomijnders/trees_ensemble">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>
+<a id="random-forests-and-aggregation-methods" class="anchor" href="#random-forests-and-aggregation-methods" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Random Forests and aggregation methods</h2>
+
+<p>This post focuses on aggregation methods. Random Forest and Bootstrap Aggregation are by themselves instances of aggregation methods. In line of a data competition, we have team members make a classifier each and aggregate them to a final submission.</p>
+
+<h2>
+<a id="data" class="anchor" href="#data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data</h2>
+
+<p>The data is part of a class competition hosted by professor Alexandre Thiery for the Data mining course at NUS. The data consists of 20.000 labeled samples for training and 20.000 unlabeled samples for evaluation. Targets are seven classes. The training data is split in <strong>train_data.csv</strong>, <strong>test_data.csv</strong> and <strong>assembling_data.csv</strong> for our training purposes.</p>
+
+<h2>
+<a id="ensemble" class="anchor" href="#ensemble" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Ensemble</h2>
+
+<p>The main script is <strong>ensemble.py</strong>, which takes in the distribution over the classes for each sample in both the <strong>assembling_data.csv</strong> and the final test data. 
+The individual classifiers with the accuracies for the <strong>assembling_data.csv</strong></p>
+
+<ul>
+<li> Naive Bayes classfier: 77%</li>
+<li> Random Forest (with 22 covariates taken for each split): 95.8%</li>
+<li> Bagging: 96.4% </li>
+<li> Neural Network (1 hidden layer, 115 neurons): 96.4%<br>
+</li>
+<li> Multi-class one-vs-one LASSO: 92.8%</li>
+<li> Multi-class one-vs-one RIDGE: $93.5 \%$</li>
+</ul>
+
+<p>Code for the individual classifiers in <strong>baggin_main.m</strong>, <strong>random_forest_main.r</strong> (author: Mareva Brixy) and <strong>MLP_1_hidden.py</strong>. </p>
+
+<h2>
+<a id="aggregation" class="anchor" href="#aggregation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aggregation</h2>
+
+<p>For the aggregation, we take a naive weighted average. The weights are the accuracies as obtained on the <strong>assembling_data.csv</strong>. With some selection, we obtain 96.6% accuracy by combining the Random Forest, Bagging and Neural network. Already, this naive weighted average as an ensemble outperforms the individual accuracies.</p>
+
+<h2>
+<a id="output" class="anchor" href="#output" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output</h2>
+
+<p>A typical output of the script would be like this
+<img src="https://github.com/RobRomijnders/trees_ensemble/blob/master/output_example.png?raw=true" alt="example_output">
+Per classifier, you will get the confusion matrix, the accuracy on the labeled data and the average confidence per misclassified sample. Moreover, you will get the ensemble accuracy and metrics for the unlabeled dataset.</p>
+
+<p>As always, I am curious to any comments and questions. Reach me at <a href="mailto:romijndersrob@gmail.com">romijndersrob@gmail.com</a></p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/RobRomijnders">RobRomijnders</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
