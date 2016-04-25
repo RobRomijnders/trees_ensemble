@@ -1,0 +1,515 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[a4paper,
+left=2.5cm, right=2.5cm,
+ top=3cm, bottom=3cm]{geometry}
+\footskip1cm
+\usepackage[utf8]{inputenc}
+\usepackage[british]{babel}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{stmaryrd}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{makeidx}
+\usepackage{multicol}
+\usepackage{epic}
+\usepackage{dsfont}
+\usepackage[ltxarrow]{pict2e}
+\usepackage{datetime}
+\usepackage{listings}
+\usepackage[colorlinks, linkcolor = black, citecolor = black, filecolor = black, urlcolor = black]{hyperref}
+\usepackage[onehalfspacing]{setspace}
+\usepackage[T1]{fontenc}
+\usepackage[all]{xy}
+\usepackage{multirow}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{enumerate}
+\usepackage{tikz} % needed for drawing
+\usepackage{epsfig} 
+\usepackage{epstopdf}
+\setlength{\parindent}{0cm}
+\renewcommand{\P}{\mathbb{P}}
+
+\title{\Large ST4240 Data Mining: Assignment 2}
+\author{Julie Abastado \ E0015173 \\ Mareva Brixy A0150181U \  \\ Johannes Muesebeck \ A0149518W \\ Rob Romijnders \ A0149181A}
+\date{8/04/2016}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\makeindex
+
+
+
+\begin{document}
+\maketitle
+
+\chapter*{Credit rating}
+\section*{Unregularized Logistic Regression: gradient descent}
+In this part, we will use Stochastic Gradient Descent to fit an unregularized logistic regression model on the training
+dataset. We start from slide 30, chapter 5, with:
+\[P(y=+1 | x) = \frac{e^{\beta^T x}}{1+e^{\beta^T x}}  \] and
+\[P(y=-1 | x) = \frac{1}{1+e^{\beta^T x}}  \]. We generalize to
+\[P(y=y_i | x_i) = \frac{1}{1+e^{-y_i\beta^T x_i}}  \]
+
+For fitting the model, we calculate the MLE.
+\[\pi(\beta) = \prod_{i=1}^N \frac{1}{1+e^{-y_i\beta^T x_i}}  \]
+We may as well minimize the negative log-likelihood.
+\[ l(\beta) = -log(\prod_{i=1}^N \frac{1}{1+e^{-y_i\beta^T x_i}}) = \sum_{i=1}^N log(1+e^{-y_i\beta^T x_i})  \]
+Now follows slide 31:
+\[\beta^* = argmin(\beta \rightarrow \sum_{i=1}^N log(1+e^{-y_i\beta^T x_i}))  \]
+For gradient descent, we want the gradient
+\[\nabla_\beta \ l(\beta) = \nabla_\beta \sum_{i=1}^N log(1+e^{-y_i\beta^T x_i})) \]
+\[ \nabla_\beta \ l(\beta) = \sum_{i=1}^N \frac{-y_i x_i}{1+e^{-y_i\beta^T x_i}}e^{-y_i\beta^T x_i} \] This simplifies to
+\[ \nabla_\beta \ l(\beta) = \sum_{i=1}^N \frac{-y_i x_i}{1+e^{y_i\beta^T x_i}} \] 
+
+The implementation is in the Matlab-code in the appendix. The evolution of the loss and the coefficients $\beta_i$ are in figure \ref{bl_ex1_1}.
+
+\begin{figure}[h]
+\includegraphics[width = \textwidth]{loss_beta_coeff_ex1_1.png}
+\caption{Loss function and }
+\label{bl_ex1_1}
+\end{figure}
+
+\section*{LASSO and Ridge Logistic Regression}
+In this part, we fit a LASSO Logistic Regression and a Ridge Logistic Regression on the training dataset. Then we make predictions on the test dataset.
+
+Fitting a Ridge Logistic Regression is equivalent to find the following Beta coefficients:
+\[\beta_* = argmin(\beta \rightarrow \sum_{i=1}^N log(1+e^{-y_i\beta^T x_i}) + \lambda*||\beta||_2^2) \]
+
+To implement it on R we write the following code using glmnet library:
+
+\begin{lstlisting}{R}
+library(glmnet)
+#We fit a Ridge logistic regression
+cvfit_ridge = cv.glmnet(X_train_logistic,Y_train_logistic,
+                        lambda = lambda.grid, alpha= 0, family = "binomial") 
+plot(cvfit_ridge)
+\end{lstlisting}
+Where $Xtrainlogistic$ is the X matrix of the training dataset and $Ytrainlogistic$ is the vector of our examples we want to predict (also extracted from the training dataset).
+
+The Ridge Logistic Regression on the training data gives the plot in figure \ref{ridge_log}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{LogisticR_Ridge.png}
+\caption{Binomial Deviance against the regularized parameter for Ridge Logistic Regression}
+\label{ridge_log}
+\end{figure}
+
+Then, fitting a LASSO Logistic Regression is equivalent to find the following Beta coefficients:
+\[\beta_* = argmin(\beta \rightarrow \sum_{i=1}^N log(1+e^{-y_i\beta^T x_i}) + \lambda*||\beta||_1) \]
+
+To implement it on R we write the following code:
+\begin{lstlisting}{R}
+#We fit a Lasso logistic regression
+lambda.grid = 10^seq(1,-3,length =100)
+cvfit_lasso = cv.glmnet(X_train_logistic,Y_train_logistic,
+                        lambda = lambda.grid, alpha= 1, family = "binomial") 
+plot(cvfit_lasso)
+
+\end{lstlisting}
+
+The LASSO Logistic Regression on the training data gives the plot in figure \ref{lasso_log}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{LogisticR_LASSO.png}
+\caption{Binomial Deviance against the regularized parameter for LASSO Logistic Regression}
+\label{lasso_log}
+\end{figure}
+
+Next, we get a prediction for both Ridge and LASSO logistic regression with the folowing code:
+\begin{lstlisting}{R}
+#We predict on the testset the value of our factor "SeriousDlqin2yrs"
+prediction_Lasso = predict(cvfit_lasso, newx = X_test_logistic, 
+s= "lambda.min", type ="response")
+prediction_Ridge = predict(cvfit_ridge, newx = X_test_logistic, 
+s = "lambda.min", type = "response")
+
+\end{lstlisting}
+ 
+And in order to see the AUC curve for both predictions, we import pROC library:
+\begin{lstlisting}{R}
+library(pROC)
+#We display the two results
+plot.roc(data_test[,"SeriousDlqin2yrs"], as.vector(prediction_Lasso),
+         col= "red", lwd=3, print.auc= TRUE, print.auc.y = 0.2)
+plot.roc(data_test[,"SeriousDlqin2yrs"], as.vector(prediction_Ridge),
+         col= "green", lwd=3, print.auc= TRUE, print.auc.y = 0.1, add = TRUE)
+         
+\end{lstlisting}
+ 
+We obtain the AUC curve in figure \ref{AUC_ridge}.
+
+\begin{figure}[h]
+%\centering
+\includegraphics[width=0.8\textwidth]{AUC_LogisticR_Lasso_Ridge.png}
+\caption{Comparison of Lasso and Ridge Logistic Regression AUC curve}
+\label{AUC_ridge}
+\end{figure}
+
+Finally the accuracy of the two logistic Regression is:
+\begin{itemize}
+    \item $Accuracy_{LASSO Logistic Regression} = 94.93\%$
+    \item $Accuracy_{Ridge Logistic Regression} = 94.93\%$
+\end{itemize}
+
+
+
+
+\newpage
+\section*{Naives Bayes} 
+Our next approach is a naive binary Bayes Classifier. Given a new instance $x=(x^{(1)},...,x^{(10)})$ of our training set \textit{loanTrain.csv}, the classifier computes the posterior probability of this new piece of data belonging to class $r\in\{0,1\}$ which is given by
+\begin{align*}
+    \P(y=r|x)&=\frac{\P(x|y=r)\cdot\P(y=r)}{\P(x)} \\
+    &=\frac{\P(x|y=r)\cdot\P(y=r)}{\P(x|y=0)\cdot\P(y=0)+\P(x|y=1)\cdot\P(y=1)}.
+\end{align*}
+The implementation can be done using the R-library \textit{e1071}. In order to include a regularisation to our method we used Laplace smoothing with parameter $2$.
+
+\begin{lstlisting}{R}
+loanTrain=read.csv("loanTrain.csv",header=T)
+loanTest=read.csv("loanTest.csv",header=T)
+n_Train=length(loanTrain[,1])
+n_Test=length(loanTest[,1])
+
+# Library for Naive Bayes Classifier
+library(e1071)
+
+# naive Bayes
+naive=naiveBayes(formula=SeriousDlqin2yrs ~ .,data=loanTrain,type="raw",laplace=2)
+prediction.naive=predict(naive,loanTest[,-1],type="raw")
+\end{lstlisting}
+
+With this simple approach we already obtain an accuracy of $91.52\%$. In a futher step we decided to look at the histograms of the covariate variables (figure \ref{histo}).
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{histograms.PNG}
+\caption{Histogram of the 10 covariates}
+\label{histo}
+\end{figure}
+\\
+One a first glance, the monthly income (histogram marked by yellow circle) seems to have an empirical density similiar to the exponential distribution. Since the naive Bayes method assumes a Gaussian distribution of the conditional probabilities of the different covariates, a log-transformation may help to increase the accuracy. After applying the logarithm we obtain the following histogram (figure \ref{loghisto}) which now indicates a normal distribution.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{loghisto.PNG}
+\caption{Histgram of log-transformed monthly income}
+\label{loghisto}
+\end{figure}
+
+Running the naive Bayes method again results in an improved accuracy of $94.68\%$. The proportion of misclassified examples on the test set it $5.32\%$. To close this section, we plot the ROC and AUC of both methods (figure \ref{AUCnaive}). 
+
+\begin{lstlisting}{R}
+# ROC and AUC
+library(pROC)
+plot.roc(loanTest[,"SeriousDlqin2yrs"],prediction.naive[,1],col="blue",
+lwd=3,print.auc=T,print.auc.y=0.3)
+\end{lstlisting}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{AUCnaiveBayes.PNG}
+\caption{ROC and AUC of naive Bayes (blue) and naive Bayes with log-transformed monthly income (green)}
+\label{AUCnaive}
+\end{figure}
+
+\section*{Tree methods}
+In this part we fit a Random Forest and a gradient Boosting algorithm on the training dataset in order to make predictions on the test set.\\
+
+\subsection*{Random Forest}
+
+The Random Forest algorithm grows trees on subsamples datasets, like bagging procedure. Only subsets of predictors are allowed at each split in order to make trees more independent. For each split, a given number of covariates is chosen. If the number of covariates is p, a number, m, equal to $\sqrt{p}$ is usually chosen.\\
+
+Firstly we fit a Random Forest to the training set, using the library \textit{randomForest} in R. The code is the following : 
+
+\begin{lstlisting}{R}
+# Import the library 'randomForest'
+library(randomForest)
+
+# Define the random forest
+random_forest = randomForest( SeriousDlqin2yrs~., data = train_data,
+                          ntry = 3, ntree = 2000, importance = TRUE)
+  # data : variables of the model 
+  # ntry : number of variables randomly sampled as candidates at each split
+  # ntree : number of trees to grow
+  # importance : the importance of predictors is assessed
+\end{lstlisting}
+
+Here, we want the training dataset 'loanTrain' to fit a Random Forest with the variable 'SeriousDlqin2yrs' as a variable of interest. We choose $m = 3$ as number of predictors for each split ($\sqrt{p} \approx 3$).\\
+Then we make a prediction on the variable 'SeriousDlqin2yrs' based on the values of predictors of the test set, thanks to the following code :
+
+\begin{lstlisting}{R}
+# Make predictions on the test set
+random_forest_prediction = predict(object = random_forest,
+                           newdata = test_data[, -1], type = "prob")
+  # object : the random forest 
+  # newdata : the data used for prediction (values of covariates)
+  # type : indicates the type of output 
+  #            - "response" : predicted values
+  #            - "prob" : matrix of class probabilities (class 0 and class 1)
+  #            - "votes" : matrix of vote counts
+
+\end{lstlisting}
+
+The paragraph 'AUC and proportion of misclassified data' reports the results of the prediction, the performance of this classifier and compares it to those of the gradient Boosting algorithm.
+
+\subsection*{Gradient boosting algorithm}
+
+In the gradient boosting algorithm, a tree is added at each iteration by following the direction of the gradient descent in order to improve the performance. \\
+Firstly we fit a Boosting algorithm to the training set, thanks to the library \textit{gbm} in R. The code is the following : 
+
+\begin{lstlisting}{R}
+# Import the library 'gbm'
+library(gbm)
+
+# Boosting algorithm
+boosting = gbm(SeriousDlqin2yrs~., 
+               data = train_data,
+               distribution = "multinomial",
+               n.trees = 2000,
+               interaction.depth = 4, 
+               cv.folds=5,
+               shrinkage=0.005)
+  # data : containing the variables of the model 
+  # distribution : distribution to use ('bernouilli' for two unique values, 
+  # 'multinomial' for factor reponses...)
+  # n.trees : total number of trees (number of basis functions 
+  # in the additive expansion)
+  # interaction.depth : maximum depth of variable interactions
+  # cv.folds : number of cross validation to perform and estimate 
+  # the optimal number of trees
+  # shrinkage : learning rate or step-size reduction
+  
+# Compute optimal number of trees (by cross-validation)
+optimal_nb_trees = gbm.perf(boosting, plot.it = TRUE, oobag.curve = TRUE)
+\end{lstlisting}
+
+Here, we want the training dataset 'loanTrain' to fit a Boosting algorithm with the variable 'SeriousDlqin2yrs' as a variable of interest. We add 2000 trees with a learning rate equal to 0.0005. We use a cross validation to estimate the optimal number of trees (figure \ref{opt_tree}).\\
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{pix_optimal_nb_trees.png}
+\caption{Choice of the optimal number of trees}
+\label{opt_tree}
+\end{figure}
+
+Here the optimal number of trees is 665. We use this number to make a prediction on the variable 'SeriousDlqin2yrs' based on the values of predictors of the test set :
+
+\begin{lstlisting}{R}
+# Make predictions on the test set
+boosting_prediction = predict(boosting,
+                              newdata = test_data[,-1], 
+                              n.trees = optimal_nb_trees, 
+                              type="response")
+\end{lstlisting}
+
+The paragraph 'AUC and proportion of misclassified data' reports the results of the prediction and the performance of this classifier and compares it to those of the Random Forest.
+
+\subsection*{AUC and proportion of misclassified data}
+
+We show the ROC (Receiver Operating Characteristic) and AUC (Area Under the Curve) of Random Forest and Boosting on the same plot, by using the library \textit{pROC} : \textit{see figure \ref{roc}}
+
+\begin{lstlisting}{R}
+# Import the library 'pROC' to plot ROC and assess AUC 
+library(pROC)
+
+# Random Forest
+plot.roc(test_data[,1], random_forest_prediction[,1], col="green",
+         lwd=3, print.auc=TRUE, print.auc.y = 0.3)
+
+# Boosting algorithm
+plot.roc(test_data[,1], boosting_prediction[,1,1], col="orange",
+         lwd=3, print.auc=TRUE, print.auc.y = 0.5, add=TRUE)
+\end{lstlisting}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{pix_auc_rf_boosting.png}
+\caption{ROC and AUC of Random Forest and Boosting}
+\label{roc}
+\end{figure}
+
+On figure \ref{roc}, the Random Forest ROC is drawn in green and the Boosting ROC is orange. The Boosting AUC is a little bit higher than the Random Forest one. It means that the Boosting procedure is a better classifier than the Random Forest.
+
+Then we assess the performances of both algorithms. We choose a threshold of 0.5 to separate samples from class 0 and class 1. 
+
+\begin{lstlisting}{R}
+# Random forest
+random_forest_prediction_thres = rep(0,test_nb_samples)
+random_forest_prediction_thres[random_forest_prediction[,2] <= 0.5] = 0 
+random_forest_prediction_thres[random_forest_prediction[,2] > 0.5] = 1
+random_forest_accuracy = mean(random_forest_prediction_thres == test_data[,1])
+
+
+# Boosting
+boosting_prediction_thres = rep(0,test_nb_samples)
+boosting_prediction_thres[boosting_prediction[,2,1] <= 0.5] = 0
+boosting_prediction_thres[boosting_prediction[,2,1] > 0.5] = 1
+boosting_accuracy = mean(boosting_prediction_thres == test_data[,1])
+\end{lstlisting}
+
+We find : 
+\[
+accuracy_{ rf} = 0.9468
+\]
+\[
+accuracy_{ boosting} = 0.9486
+\]
+
+We conclude that in our exercice, the gradient Boosting algorithm gives (a little bit) better performances than Random Forest.
+
+\newpage
+\chapter*{Predictive modelling}
+
+Our approach for the predictive modelling task  is to construct an emsemble of classifiers. \\
+At first, we evaluated different classifiers. To compare the performances, we split the \textbf{modelingTrain.csv} into three datasets
+\begin{itemize}
+    \item A trainset with 14000 samples
+    \item A validationset with 3000 samples
+    \item A testset with 3000 samples
+\end{itemize}
+
+We obtained the following accuracies on this testset at our classifiers:
+\begin{itemize}
+    \item Naive Bayes classfier: $77 \%$
+    \item Random Forest (with 22 covariates taken for each split): $95.8 \%$
+    \item Bagging: $96.4 \%$
+    \item Neural Network: $96.4 \%$
+    \item Multi-class one-vs-one LASSO: $92.8 \%$
+    \item Multi-class one-vs-one RIDGE: $93.5 \%$
+\end{itemize}
+We combine these classifiers in an ensemble: 
+We define $p_l(y_i = c_j)$ denoting the probability that sample $x_i$ belongs to class $c_j$ based on classifier $l$
+Now
+\[p(y_i = c_j) = \frac{\sum_{l \in L} w_{l} \ p_l(y_i = c_j) }{\sum_{l \in L} w_{l}  }\] where $L$ denotes the set of classifiers \\ 
+Finally, we predict $y_i$ based on \[y_i = arg \max_j p(y_i = c_j)\]
+ \\ \\
+As a naive approach, we take $w_l$ as the accuracy of classifier $l$ . Upon combining the Random Forest, Neural Network and Bagging, we obtain a accuracy on the testset of $96.6\%$. Note that the accuracies of these classifiers lie in the range $95.8-96.4 \%$. The ensemble results in a better accuracy than the individual accuracies. \\
+The code for the ensemble method is in the appendix.
+
+
+\section{MatLab Code}
+\subsection{Code for exercise 1, unregularized Logistic regression}
+\lstinputlisting{a2q1_1.m}
+\subsection{Code for ensemble method}
+\begin{lstlisting}
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr  4 13:01:02 2016
+
+@author: rob
+"""
+import numpy as np
+from sklearn.metrics import confusion_matrix
+acc_weights = np.array([0.964, 0, 0.958, 0, 0.964, 0])
+test_weights = np.array([0.964, 0.958, 0.964])
+
+#Load the assemble dataset
+data_ass = np.genfromtxt('assembling_data.csv',delimiter = ',',skip_header=1)
+y_ass = data_ass[:,1]
+
+#Save all the individual logits in a dictionary
+logits = {}
+logits_test = {}
+logits['logits_1'] = np.genfromtxt('logits_nn_1hidden6apr.csv')
+logits['logits_2'] = np.genfromtxt('Probabilities_Classes_LassoR1.csv',delimiter = ',',skip_header=1)[:,1:]
+logits['logits_3'] = np.genfromtxt('predicted_probabilities_random_forest.csv',delimiter = ',',skip_header=1)[:,1:]
+logits['logits_4'] = np.genfromtxt('predicted_probabilities_boosting.csv',delimiter = ',',skip_header=1)[:,1:]
+logits['logits_5'] = np.genfromtxt('predicted_probabilities_bagging.csv',delimiter = ',',skip_header=1)[:,1:]
+logits['logits_6'] = np.genfromtxt('Probabilities_Classes_RidgeR.csv',delimiter = ',',skip_header=1)[:,1:]
+logits_test['logits_1'] = np.genfromtxt('logits_nn_1hidden_test7april.csv')
+logits_test['logits_2'] = np.genfromtxt('random_forest_prediction_test2.csv',delimiter = ',',skip_header=1)[:,1:]
+logits_test['logits_3'] = np.genfromtxt('bagging_probabilities_modelingTest.csv',delimiter = ',',skip_header=1)[:,1:]
+Ntest = logits_test['logits_1'].shape[0]
+
+#Expected sizes
+D = 7
+N = 3000
+#Check these expected sizes
+assert logits['logits_1'].shape == (N,D), 'Wrong size of logits_1'
+assert logits['logits_2'].shape == (N,D), 'Wrong size of logits_2'
+assert logits['logits_3'].shape == (N,D), 'Wrong size of logits_3'
+assert logits['logits_4'].shape == (N,D), 'Wrong size of logits_4'
+assert logits['logits_5'].shape == (N,D), 'Wrong size of logits_5'
+
+#Perform weighted sum over individual logits
+logits_weighted_sum = np.zeros((N,D))
+for n in xrange(len(acc_weights)):
+    logits_weighted_sum += acc_weights[n]*logits['logits_'+str(n+1)]
+logits_weighted_sum /= np.sum(acc_weights)
+
+#Perform weighted sum over individual logits over testset
+logits_test_sum = np.zeros((Ntest,D))
+for n in xrange(len(test_weights)):
+    logits_test_sum += test_weights[n]*logits_test['logits_'+str(n+1)]
+logits_test_sum /= np.sum(test_weights)
+
+#Make predictions
+pred = {}
+acc = {}
+conf = {}
+ytrue = np.expand_dims(y_ass,axis=1)
+for n in xrange(len(acc_weights)):
+    logits_n = logits['logits_'+str(n+1)]
+    pp = np.argmax(logits_n,axis=1)
+    pred['classifier_'+str(n+1)] = pp
+    ypp = np.expand_dims(pp,axis=1)
+    print('Confusion matrix for classifier %s'%(n+1))
+    print(confusion_matrix(ytrue,ypp))
+    #Save the accuracy for later printing
+    acc['classifier_'+str(n+1)] = np.mean(ytrue==ypp)
+    #Calculate the average confidence at the falsely classified samples
+    ind_false = np.where(ytrue!=ypp)
+    ind_false = ind_false[0]
+    class_false = np.squeeze(ytrue[ind_false]).astype(int)
+    conf_false = logits_n[ind_false,class_false]
+    conf['classifier_'+str(n+1)] = np.mean(conf_false)
+
+#Print the accuracies
+for n in xrange(len(acc_weights)):
+    print('Accuracy for classifier %s is %.3f'%(n+1,acc['classifier_'+str(n+1)]))
+    
+#Print the confidences
+for n in xrange(len(acc_weights)):
+    print('Average confidence at misclassified samples for classifier %s is %.3f'%(n+1,conf['classifier_'+str(n+1)]))
+    
+
+#Check if the weighted sum makes sense
+assert np.linalg.norm(np.sum(logits_weighted_sum,axis=1)-1) < 0.001,'The weighted sum seems not to result in a probability distribution'
+
+ensemble_pred = np.argmax(logits_weighted_sum,axis=1)
+ensemble_pred = np.expand_dims(ensemble_pred,axis=1)
+acc_ens = np.mean(ensemble_pred == ytrue)
+assert len(ensemble_pred) == N, 'Something in the sizes of argmax faulted'
+print('Ensemble accuracy is %.3f'%(acc_ens))
+
+
+#Make predictions on the testset
+test_pred = np.argmax(logits_test_sum,axis=1)
+test_pred = np.expand_dims(test_pred,axis=1)
+test_pred = np.concatenate((np.expand_dims(np.arange(1,20001,1),axis=1),test_pred),axis=1)
+
+# Check the consistency of the different classifiers in the ensemble
+pred_ens = {}
+for n in xrange(len(test_weights)):
+    logits_n = logits_test['logits_'+str(n+1)]
+    pp = np.argmax(logits_n,axis=1)
+    pred_ens['classifier_'+str(n+1)] = pp
+
+consis1 = (pred_ens['classifier_1'] == pred_ens['classifier_2'])
+consis2 = (pred_ens['classifier_1'] == pred_ens['classifier_3'])
+consis3 = (pred_ens['classifier_2'] == pred_ens['classifier_3'])
+consis = consis1 & consis2
+consis = np.mean(consis)
+print('\n')
+print('Consistency 1 & 2 %.3f'%(np.mean(consis1)))
+print('Consistency 1 & 2 %.3f'%(np.mean(consis2)))
+print('Consistency 3 & 2 %.3f'%(np.mean(consis3)))
+print('The three classifiers are consistent on %.3f'%(consis))
+
+
+# Save the predictions for the testset
+np.savetxt('prediction_23.csv',test_pred)
+\end{lstlisting}
+
+\end{document}
