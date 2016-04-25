@@ -36,13 +36,13 @@
 <h2>
 <a id="data" class="anchor" href="#data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data</h2>
 
-<p>The data is part of a class competition hosted by professor Alexandre Thiery for the Data mining course at NUS. The data consists of 20.000 labeled samples for training and 20.000 unlabeled samples for evaluation. Targets are seven classes. The training data is split in <strong>train_data.csv</strong>, <strong>test_data.csv</strong> and <strong>assembling_data.csv</strong> for our training purposes.</p>
+<p>The data is part of a class competition hosted by professor Alexandre Thiery for the Data mining course at NUS. The data consists of 20.000 labeled samples for training and 20.000 unlabeled samples for evaluation. Targets are seven classes. The training data is split in <em>train_data.csv</em>, <em>test_data.csv</em> and <em>assembling_data.csv</em> for our training purposes.</p>
 
 <h2>
 <a id="ensemble" class="anchor" href="#ensemble" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Ensemble</h2>
 
-<p>The main script is <strong>ensemble.py</strong>, which takes in the distribution over the classes for each sample in both the <strong>assembling_data.csv</strong> and the final test data. 
-The individual classifiers with the accuracies for the <strong>assembling_data.csv</strong></p>
+<p>The main script is <em>ensemble.py</em>, which takes in the distribution over the classes for each sample in both the <em>assembling_data.csv</em> and the final test data. 
+The individual classifiers with the accuracies for the labeled data</p>
 
 <ul>
 <li> Naive Bayes classfier: 77%</li>
@@ -51,15 +51,15 @@ The individual classifiers with the accuracies for the <strong>assembling_data.c
 <li> Neural Network (1 hidden layer, 115 neurons): 96.4%<br>
 </li>
 <li> Multi-class one-vs-one LASSO: 92.8%</li>
-<li> Multi-class one-vs-one RIDGE: $93.5 \%$</li>
+<li> Multi-class one-vs-one RIDGE: $93.5 %$</li>
 </ul>
 
-<p>Code for the individual classifiers in <strong>baggin_main.m</strong>, <strong>random_forest_main.r</strong> (author: Mareva Brixy) and <strong>MLP_1_hidden.py</strong>. </p>
+<p>Code for the individual classifiers in <em>baggin_main.m</em>, <em>random_forest_main.r</em> (author: Mareva Brixy) and <em>MLP_1_hidden.py</em>. </p>
 
 <h2>
 <a id="aggregation" class="anchor" href="#aggregation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aggregation</h2>
 
-<p>For the aggregation, we take a naive weighted average. The weights are the accuracies as obtained on the <strong>assembling_data.csv</strong>. With some selection, we obtain 96.6% accuracy by combining the Random Forest, Bagging and Neural network. Already, this naive weighted average as an ensemble outperforms the individual accuracies.</p>
+<p>For the aggregation, we take a naive weighted average. The weights are the accuracies as obtained on the <em>assembling_data.csv</em>. With some selection, we obtain 96.6% accuracy by combining the Random Forest, Bagging and Neural network. Already, this naive weighted average as an ensemble outperforms the individual accuracies.</p>
 
 <h2>
 <a id="output" class="anchor" href="#output" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output</h2>
